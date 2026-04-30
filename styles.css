@@ -115,3 +115,19 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .btn-save:hover{opacity:.88}
 .btn-cancel{padding:11px 18px;border-radius:12px;font-size:13px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .2s}
 .btn-cancel:hover{color:var(--text);border-color:rgba(255,255,255,0.25)}
+
+/* History Section */
+.history-section{margin-top:40px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px}
+.history-section h2{font-size:18px;font-weight:700;margin-bottom:20px;color:var(--text)}
+.history-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.tab-btn{background:transparent;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:8px;transition:all .2s;text-transform:uppercase}
+.tab-btn.active{background:var(--card2);color:var(--text);border:1px solid var(--border2)}
+.history-list{display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;padding-right:8px}
+.history-item{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:16px;position:relative}
+.history-item .h-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:8px}
+.history-item .h-task{font-size:14px;font-weight:600;margin-bottom:8px}
+.history-item .h-prog{font-size:16px;font-weight:800;position:absolute;top:16px;right:16px}
+.history-item .h-meta{display:flex;gap:16px;margin-top:12px}
+.history-item .h-meta-col{display:flex;flex-direction:column;gap:4px}
+.history-item .h-meta-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase}
+.history-item .h-meta-val{font-size:11px;color:var(--text)}
