@@ -1,0 +1,196 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.tracker { padding: 1rem 0; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.top-bar h2 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.date-pill { font-size: 12px; color: var(--color-text-secondary); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 20px; padding: 4px 12px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+.card-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+.av-me { background: #EEEDFE; color: #3C3489; }
+.av-hassan { background: #E1F5EE; color: #085041; }
+.av-nii { background: #FAECE7; color: #712B13; }
+.name-block .name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.name-block .role { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+.edit-btn { margin-left: auto; font-size: 11px; color: var(--color-text-secondary); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+.edit-btn:hover { background: var(--color-background-tertiary); }
+.card-body { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+.field-row { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-tertiary); }
+.field-value { font-size: 13px; color: var(--color-text-primary); line-height: 1.5; }
+.field-value.empty { color: var(--color-text-tertiary); font-style: italic; }
+.progress-bar-wrap { height: 6px; background: var(--color-background-secondary); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.progress-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+.pct-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.obstacle-chip { display: inline-block; background: #FAEEDA; color: #633806; font-size: 11px; border-radius: 5px; padding: 3px 8px; margin-top: 2px; }
+.obstacle-chip.none { background: #EAF3DE; color: #27500A; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 20px; width: 320px; max-width: 95vw; }
+.modal h3 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 16px; }
+.modal-field { margin-bottom: 12px; }
+.modal-field label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 5px; }
+.modal-field input, .modal-field textarea, .modal-field select { width: 100%; font-size: 13px; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 7px 10px; resize: none; }
+.modal-field input[type=range] { padding: 0; border: none; background: transparent; }
+.range-row { display: flex; align-items: center; gap: 10px; }
+.range-row span { font-size: 13px; font-weight: 500; color: var(--color-text-primary); min-width: 32px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+.modal-actions button { flex: 1; padding: 8px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; cursor: pointer; }
+.btn-save { background: var(--color-background-info); color: var(--color-text-info); border: 0.5px solid var(--color-border-info); }
+.btn-cancel { background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); }
+</style>
+
+<div class="tracker">
+  <div class="top-bar">
+    <h2>Team task tracker</h2>
+    <span class="date-pill" id="today-date"></span>
+  </div>
+  <div class="grid" id="cards-grid"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Update task</h3>
+    <div class="modal-field">
+      <label>Task worked on today</label>
+      <input type="text" id="f-task" placeholder="e.g. API integration, dashboard design..." />
+    </div>
+    <div class="modal-field">
+      <label>Progress (<span id="pct-display">0</span>%)</label>
+      <div class="range-row">
+        <input type="range" id="f-progress" min="0" max="100" step="5" value="0" style="flex:1" />
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Tools used</label>
+      <input type="text" id="f-tools" placeholder="e.g. Figma, VS Code, Notion..." />
+    </div>
+    <div class="modal-field">
+      <label>Obstacles found</label>
+      <textarea id="f-obstacles" rows="2" placeholder="Any blockers or challenges? Leave blank if none."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-cancel">Cancel</button>
+      <button class="btn-save" id="btn-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(async () => {
+  const members = [
+    { id: 'me', name: 'Me', initials: 'ME', avatarClass: 'av-me', barColor: '#7F77DD' },
+    { id: 'hassan', name: 'Hassan', initials: 'HA', avatarClass: 'av-hassan', barColor: '#1D9E75' },
+    { id: 'nii', name: 'Nii', initials: 'NI', avatarClass: 'av-nii', barColor: '#D85A30' }
+  ];
+
+  let data = { me: {}, hassan: {}, nii: {} };
+
+  async function loadAll() {
+    for (const m of members) {
+      try {
+        const res = await window.storage.get('task_' + m.id);
+        if (res && res.value) data[m.id] = JSON.parse(res.value);
+      } catch(e) {}
+    }
+  }
+
+  async function saveOne(id) {
+    try { await window.storage.set('task_' + id, JSON.stringify(data[id])); } catch(e) {}
+  }
+
+  function today() {
+    return new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  }
+
+  function renderCards() {
+    const grid = document.getElementById('cards-grid');
+    grid.innerHTML = '';
+    for (const m of members) {
+      const d = data[m.id];
+      const pct = d.progress ?? 0;
+      const hasObstacle = d.obstacles && d.obstacles.trim().length > 0;
+      grid.innerHTML += `
+      <div class="card">
+        <div class="card-head">
+          <div class="avatar ${m.avatarClass}">${m.initials}</div>
+          <div class="name-block">
+            <div class="name">${m.name}</div>
+            <div class="role">Team member</div>
+          </div>
+          <button class="edit-btn" onclick="openModal('${m.id}')">Edit</button>
+        </div>
+        <div class="card-body">
+          <div class="field-row">
+            <span class="field-label">Task today</span>
+            <span class="field-value ${!d.task ? 'empty' : ''}">${d.task || 'No task added yet'}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Progress</span>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar" style="width:${pct}%; background:${m.barColor};"></div>
+            </div>
+            <span class="pct-label">${pct}% complete</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Tools used</span>
+            <span class="field-value ${!d.tools ? 'empty' : ''}">${d.tools || '—'}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Obstacles</span>
+            <span class="${hasObstacle ? 'obstacle-chip' : 'obstacle-chip none'}">${hasObstacle ? d.obstacles : 'No obstacles'}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  let editingId = null;
+
+  window.openModal = function(id) {
+    editingId = id;
+    const m = members.find(x => x.id === id);
+    const d = data[id];
+    document.getElementById('modal-title').textContent = 'Update — ' + m.name;
+    document.getElementById('f-task').value = d.task || '';
+    document.getElementById('f-progress').value = d.progress ?? 0;
+    document.getElementById('pct-display').textContent = d.progress ?? 0;
+    document.getElementById('f-tools').value = d.tools || '';
+    document.getElementById('f-obstacles').value = d.obstacles || '';
+    document.getElementById('modal-overlay').classList.add('open');
+  };
+
+  document.getElementById('f-progress').addEventListener('input', function() {
+    document.getElementById('pct-display').textContent = this.value;
+  });
+
+  document.getElementById('btn-cancel').addEventListener('click', () => {
+    document.getElementById('modal-overlay').classList.remove('open');
+  });
+
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+  });
+
+  document.getElementById('btn-save').addEventListener('click', async () => {
+    data[editingId] = {
+      task: document.getElementById('f-task').value.trim(),
+      progress: parseInt(document.getElementById('f-progress').value),
+      tools: document.getElementById('f-tools').value.trim(),
+      obstacles: document.getElementById('f-obstacles').value.trim()
+    };
+    await saveOne(editingId);
+    document.getElementById('modal-overlay').classList.remove('open');
+    renderCards();
+  });
+
+  document.getElementById('today-date').textContent = today();
+  await loadAll();
+  renderCards();
+})();
+</script>
