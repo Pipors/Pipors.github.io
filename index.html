@@ -19,10 +19,15 @@
       <button class="edit-btn" id="btn-logout" style="border-color: var(--nii); color: var(--nii); padding: 6px 14px;">Logout</button>
     </div>
   </div>
+  <div class="main-tabs" style="display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+    <button class="tab-btn active" data-tab="ongoing">Ongoing</button>
+    <button class="tab-btn" data-tab="completed">Completed</button>
+    <button class="tab-btn" data-tab="history">History</button>
+  </div>
+
   <div class="grid" id="grid"></div>
 
-  <div class="history-section">
-    <h2>Task History</h2>
+  <div class="history-section" id="history-section" style="display:none;margin-top:0;">
     <div class="history-list" id="history-list"></div>
   </div>
 </div>

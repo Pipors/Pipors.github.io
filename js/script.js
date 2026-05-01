@@ -1,7 +1,7 @@
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const members=[
-  {id:'me',   name:'Me',     init:'ME', color:'#A78BFA', bg:'rgba(167,139,250,0.12)', gradient:'linear-gradient(90deg,#A78BFA,#C4B5FD)'},
+  {id:'anas',   name:'Anas',     init:'ME', color:'#A78BFA', bg:'rgba(167,139,250,0.12)', gradient:'linear-gradient(90deg,#A78BFA,#C4B5FD)'},
   {id:'hassan',name:'Hassan',init:'HA', color:'#34D399', bg:'rgba(52,211,153,0.12)',  gradient:'linear-gradient(90deg,#34D399,#6EE7B7)'},
   {id:'nii',  name:'Nii',    init:'NI', color:'#FB923C', bg:'rgba(251,146,60,0.12)',  gradient:'linear-gradient(90deg,#FB923C,#FCD34D)'}
 ];
@@ -88,11 +88,36 @@ function toolChips(str){
   return str.split(',').map(t=>`<span class="chip">${t.trim()}</span>`).join('');
 }
 
+let currentTab = 'ongoing';
+
 function render(){
-  const g=document.getElementById('grid');
+  const g = document.getElementById('grid');
+  const h = document.getElementById('history-section');
+  
+  if(currentTab === 'history') {
+    g.style.display = 'none';
+    h.style.display = 'block';
+    renderHistory();
+    return;
+  }
+  
+  g.style.display = 'grid';
+  h.style.display = 'none';
   g.innerHTML='';
 
-  for(const d of tasksData){
+  // Filter tasks based on the tab
+  const filteredTasks = tasksData.filter(d => {
+    const pct = d.progress ?? 0;
+    if (currentTab === 'completed') return pct === 100;
+    return pct < 100; // 'ongoing'
+  });
+
+  if (filteredTasks.length === 0) {
+    g.innerHTML = `<div style="color:var(--dim);font-size:13px;grid-column:1/-1;text-align:center;padding:40px;">No ${currentTab} tasks found.</div>`;
+    return;
+  }
+
+  for(const d of filteredTasks){
     const pct=d.progress??0;
     
     // Attempt parse of tools
@@ -107,7 +132,7 @@ function render(){
 
     g.innerHTML+=`
     <div class="card" data-who="user">
-      <div class="card-accent" style="background:linear-gradient(90deg,var(--me),#C4B5FD)"></div>
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--anas),#C4B5FD)"></div>
       <div class="card-head">
         <div class="name-info">
           <div class="name">${d.name||'Untitled Task'}</div>
@@ -118,8 +143,8 @@ function render(){
       <div class="card-body">
         <div class="field">
           <div class="field-label">Progress</div>
-          <div class="prog-row"><span class="prog-pct" style="color:var(--me)">${pct}%</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--me),#C4B5FD)"></div></div>
+          <div class="prog-row"><span class="prog-pct" style="color:var(--anas)">${pct}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--anas),#C4B5FD)"></div></div>
         </div>
         <div class="field">
           <div class="field-label">Tools</div>
@@ -198,7 +223,6 @@ document.getElementById('btn-save').addEventListener('click',async()=>{
   // reload from Supabase to capture new history item & correct db_id
   await load();
   render();
-  renderHistory();
 });
 
 const now=new Date();
@@ -222,7 +246,7 @@ function renderHistory(){
     list.innerHTML += `
       <div class="history-item" style="border-left:3px solid var(--nii)">
         <div class="h-date">${dateStr}</div>
-        <div class="h-task" style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:8px;">${subject} &rarr; Modifying <span style="color:var(--me);">${h.field_changed}</span></div>
+        <div class="h-task" style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:8px;">${subject} &rarr; Modifying <span style="color:var(--anas);">${h.field_changed}</span></div>
         <div class="h-meta" style="display:flex;gap:16px;margin-top:12px;">
           <div class="h-meta-col" style="display:flex;flex-direction:column;gap:4px;">
             <span class="h-meta-label" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;">From</span>
@@ -237,6 +261,16 @@ function renderHistory(){
     `;
   }
 }
+
+// Initialize the tabs logic
+document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentTab = e.target.dataset.tab;
+    render();
+  });
+});
 
 document.getElementById('btn-logout').addEventListener('click', async () => {
   await _supabase.auth.signOut();
@@ -255,9 +289,8 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
   const userEmail = session.user.email;
   currentUserId = session.user.id;
   const username = userEmail.split('@')[0];
-  document.getElementById('greeting').innerHTML = `Hello, <span style="color:var(--me);">${username}</span>`;
+  document.getElementById('greeting').innerHTML = `Hello, <span style="color:var(--anas);">${username}</span>`;
   
   await load();
   render();
-  renderHistory();
 })();
