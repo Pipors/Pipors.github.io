@@ -1,5 +1,3 @@
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const members=[
@@ -229,6 +227,11 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
     window.location.href = 'login.html';
     return;
   }
+  
+  // Set the user greeting
+  const userEmail = session.user.email;
+  const username = userEmail.split('@')[0];
+  document.getElementById('greeting').innerHTML = `Hello, <span style="color:var(--me);">${username}</span>`;
   
   await load();
   render();
