@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - GenX Team</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="login-body">
   <div class="login-container">
@@ -27,47 +27,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script>
-    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // Redirect to app if already logged in
-    _supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) window.location.href = 'index.html';
-    });
-
-    document.getElementById('btn-login').addEventListener('click', async () => {
-      const btn = document.getElementById('btn-login');
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-pass').value.trim();
-      const errorEl = document.getElementById('login-error');
-      
-      if (!email || !password) {
-        errorEl.textContent = "Please enter both email and password.";
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      btn.textContent = 'Signing in...';
-      errorEl.style.display = 'none';
-
-      const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        errorEl.textContent = error.message;
-        errorEl.style.display = 'block';
-        btn.textContent = 'Sign In';
-      } else {
-        window.location.href = 'index.html';
-      }
-    });
-
-    // Handle enter key submit
-    document.addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        document.getElementById('btn-login').click();
-      }
-    });
-  </script>
+  <script src="js/config.js"></script>
+  <script src="js/login.js"></script>
 </body>
 </html>
