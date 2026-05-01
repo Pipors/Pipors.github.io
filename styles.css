@@ -131,3 +131,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .history-item .h-meta-col{display:flex;flex-direction:column;gap:4px}
 .history-item .h-meta-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase}
 .history-item .h-meta-val{font-size:11px;color:var(--text)}
+
+/* Login Page Styles */
+.login-body{display:flex;align-items:center;justify-content:center;height:100vh;}
+.login-container{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px;width:100%;max-width:380px;text-align:center;position:relative;z-index:10;box-shadow:0 30px 80px rgba(0,0,0,.6);}
+.login-container h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;margin-bottom:6px;}
+.login-container h1 span{color:var(--me);}
+.login-container p{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.04em;margin-bottom:30px;}
+.login-container .mfield{text-align:left;margin-bottom:20px;}
+.login-container .mfield input{background:#080B12;border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;width:100%;box-sizing:border-box;font-family:'Syne',sans-serif;margin-top:6px;}
+.login-container .mfield input:focus{outline:none;border-color:rgba(167,139,250,0.5);}

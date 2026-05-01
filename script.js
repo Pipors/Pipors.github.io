@@ -9,6 +9,7 @@ const members=[
 ];
 
 let data={me:{},hassan:{},nii:{}};
+let historyData=[];
 let editingId=null;
 
 async function load(){
@@ -18,6 +19,7 @@ async function load(){
     .order('updated_at', { ascending: false });
 
   if (!error && dbData) {
+    historyData = dbData;
     for (const m of members) {
       // Find the most recent task for this user
       const uTask = dbData.find(t => t.user === m.id);
@@ -48,16 +50,11 @@ async function save(id){
   };
 
   try {
-    if (d.db_id) {
-      // Update existing task
-      await _supabase.from('tasks').update(rowData).eq('id', d.db_id);
-    } else {
-      // Insert new task
-      rowData.created_at = new Date().toISOString(); 
-      const { data: inserted, error } = await _supabase.from('tasks').insert([rowData]).select().single();
-      if (inserted && !error) {
-        d.db_id = inserted.id; // Save new DB ID into state
-      }
+    // Treat every save as a history log: always insert a new row. 
+    rowData.created_at = new Date().toISOString(); 
+    const { data: inserted, error } = await _supabase.from('tasks').insert([rowData]).select().single();
+    if (inserted && !error) {
+      d.db_id = inserted.id; // save the newest DB ID
     }
   } catch (e) {
     console.error("Supabase save error:", e);
@@ -142,19 +139,99 @@ document.getElementById('btn-cancel').addEventListener('click',()=>document.getE
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');});
 
 document.getElementById('btn-save').addEventListener('click',async()=>{
-  data[editingId]={
+  const dData = {
     task:document.getElementById('f-task').value.trim(),
     progress:parseInt(document.getElementById('f-prog').value),
     tools:document.getElementById('f-tools').value.trim(),
     obstacles:document.getElementById('f-obs').value.trim()
   };
+  
+  // Update state locally first so UI is snappy, but we don't know db_id for history yet
+  data[editingId] = { ...data[editingId], ...dData };
+  
   await save(editingId);
   document.getElementById('overlay').classList.remove('open');
+  
+  // reload from Supabase to capture new history item & correct db_id
+  await load();
   render();
+  
+  const activeTab = document.querySelector('.tab-btn.active');
+  renderHistory(activeTab ? activeTab.dataset.id : 'all');
 });
 
 const now=new Date();
 document.getElementById('hdate').textContent='— '+fmt(now);
 document.getElementById('dtag').textContent=fmtShort(now);
 
-(async()=>{await load();render();})();
+function renderHistory(filter = 'all'){
+  const list = document.getElementById('history-list');
+  list.innerHTML='';
+  
+  const filtered = filter === 'all' ? historyData : historyData.filter(t => t.user === filter);
+  
+  if(filtered.length === 0){
+    list.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:12px;">No task history found.</div>';
+    return;
+  }
+  
+  for(const t of filtered){
+    const m = members.find(x => x.id === t.user) || { name: 'Unknown', color: '#6B7A99' };
+    const dateObj = new Date(t.updated_at || t.created_at);
+    // e.g. "Dec 21, 2024 at 10:30 AM"
+    const dateStr = fmtShort(dateObj) + ' at ' + dateObj.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+    
+    const taskName = t.task_name || '<em style="color:var(--dim)">No detail provided</em>';
+    const pct = t.progress || '0';
+    const tools = t.used_tools || '—';
+    const obs = t.constraint || '—';
+    
+    list.innerHTML += `
+      <div class="history-item" style="border-left:3px solid ${m.color}">
+        <div class="h-date">${dateStr} • ${m.name}</div>
+        <div class="h-task" style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:8px;">${taskName}</div>
+        <div class="h-prog" style="color:${m.color};font-size:16px;font-weight:800;position:absolute;top:16px;right:16px;">${pct}%</div>
+        <div class="h-meta" style="display:flex;gap:16px;margin-top:12px;">
+          <div class="h-meta-col" style="display:flex;flex-direction:column;gap:4px;">
+            <span class="h-meta-label" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;">Tools</span>
+            <span class="h-meta-val" style="font-size:11px;color:var(--text);">${tools}</span>
+          </div>
+          <div class="h-meta-col" style="display:flex;flex-direction:column;gap:4px;">
+            <span class="h-meta-label" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;">Obstacles</span>
+            <span class="h-meta-val" style="font-size:11px;color:var(--text);">${obs}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function initHistoryTabs(){
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      tabs.forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      renderHistory(e.target.dataset.id);
+    });
+  });
+}
+
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  await _supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+(async()=>{
+  // Secure the app dashboard
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  await load();
+  render();
+  renderHistory('all');
+  initHistoryTabs();
+})();
