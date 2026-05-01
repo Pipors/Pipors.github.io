@@ -15,6 +15,7 @@
     </div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <div class="date-tag" id="dtag"></div>
+      <button class="edit-btn" id="btn-add-task" style="border-color: var(--hassan); color: var(--hassan); padding: 6px 14px;">Add New Task</button>
       <button class="edit-btn" id="btn-logout" style="border-color: var(--nii); color: var(--nii); padding: 6px 14px;">Logout</button>
     </div>
   </div>
@@ -22,12 +23,6 @@
 
   <div class="history-section">
     <h2>Task History</h2>
-    <div class="history-tabs" id="history-tabs">
-      <button class="tab-btn active" data-id="all">All</button>
-      <button class="tab-btn" data-id="me">Me</button>
-      <button class="tab-btn" data-id="hassan">Hassan</button>
-      <button class="tab-btn" data-id="nii">Nii</button>
-    </div>
     <div class="history-list" id="history-list"></div>
   </div>
 </div>
@@ -39,7 +34,7 @@
       <div class="modal-title" id="m-title"></div>
     </div>
     <div class="mfield">
-      <label>Task today</label>
+      <label>Task Name</label>
       <input type="text" id="f-task" placeholder="What are you working on?">
     </div>
     <div class="mfield">
